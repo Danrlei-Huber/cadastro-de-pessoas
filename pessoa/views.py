@@ -1,7 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse, Http404
+from django.http.response import HttpResponseNotAllowed
+from django.urls import reverse
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Pessoa
-from .form import PessoaForm
+from .models import Pessoa, Contato
+from .form import PessoaForm,ContatoForm
+
 
 class listaPessoaView(ListView):
     model = Pessoa
@@ -15,8 +19,6 @@ class listaPessoaView(ListView):
             queryset = queryset.filter(nome_completo__contains=filtro_nome)
 
         return queryset
-    
-    
 
 class PessoaCreateView(CreateView):
     model = Pessoa
@@ -31,3 +33,39 @@ class PessoaUpdateView(UpdateView):
 class PessoaDeleteView(DeleteView):
     model = Pessoa
     success_url = '/pessoas/'
+
+
+def contatos(request, pk_pessoa):
+    contatos = Contato.objects.filter(pessoa=pk_pessoa)
+    return render(request, 'contato/contato_list.html', {'contatos': contatos, 'pk_pessoa': pk_pessoa})
+
+
+def contato_novo(request, pk_pessoa):
+    form = ContatoForm()
+    if request.method == "POST":
+        form = ContatoForm(request.POST)
+        if form.is_valid():
+            contato = form.save(commit=False)
+            contato.pessoa_id = pk_pessoa;
+            contato.save()
+            return redirect(reverse('pessoa.contatos', args=[pk_pessoa]))
+
+    return render(request, 'contato/contato_form.html', {'form': form})
+
+
+def contato_editar(request, pk_pessoa, pk):
+    contato = get_object_or_404(Contato, pk=pk)
+    form = ContatoForm(instance=contato)
+    if request.method == "POST":
+        form = ContatoForm(request.POST, instance=contato)
+        if form.is_valid():
+            form.save()
+            return redirect(reverse('pessoa.contatos', args=[pk_pessoa]))
+
+    return render(request, 'contato/contato_form.html', {'form': form})
+
+
+def contato_remover(request, pk_pessoa, pk):
+    contato = get_object_or_404(Contato, pk=pk)
+    contato.delete()
+    return redirect(reverse('pessoa.contatos', args=[pk_pessoa]))

@@ -2,10 +2,7 @@
 
 
 {% block content %}
-<form method="GET">
-    <input type="text" name="nome" placeholder="Buscar por nome">
-    <input type="submit" value="Buscar">
-</form>
+ 
  <a href="{% url 'pessoa.novo' %}">Novo</a>
 <table>
     <thead>
@@ -30,6 +27,7 @@
                     <td>
                         <a href="{% url 'pessoa.editar' pessoa.pk %}">Editar</a>
                         <a href="{% url 'pessoa.remover' pessoa.pk %}">Remover</a>
+                        <a href="{% url 'pessoa.contato' pessoa.pk %}">Contatos</a>
                     </td>
                 </tr>
             {% endfor %}
